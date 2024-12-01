@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'dart:math';
 import 'chart.dart';
 
@@ -37,7 +38,6 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 1;
   final TextEditingController _inputController = TextEditingController();
   String _result = '';
-  String _suggestion = '';
 
   void _onItemTapped(int index) {
     setState(() {
@@ -99,81 +99,108 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _result = 'Mohon masukkan data yang valid.';
       });
+      Flushbar(
+        message: _result,
+        backgroundColor: Colors.white,
+        messageColor: Colors.black,
+        borderRadius: BorderRadius.circular(12),
+        margin: EdgeInsets.all(16),
+        duration: Duration(seconds: 3),
+        positionOffset: 20, // Offset dari atas
+        flushbarPosition: FlushbarPosition.TOP,
+      ).show(context);
       return;
-    }
-
-    int n = data.length;
-
-    // Hitung mean dan standar deviasi
-    double mean = data.reduce((a, b) => a + b) / n;
-    double variance =
-        data.map((value) => pow(value - mean, 2)).reduce((a, b) => a + b) /
-            (n - 1);
-    double stdDev = sqrt(variance);
-
-    // Hitung distribusi normal (PDF) untuk setiap nilai dalam rentang data
-    double minValue = data.reduce((a, b) => a < b ? a : b);
-    double maxValue = data.reduce((a, b) => a > b ? a : b);
-    double step = (maxValue - minValue) / 100;
-
-    List<double> xValues = List.generate(
-      101,
-      (index) => minValue + index * step,
-    );
-
-    List<double> yValues = xValues.map((x) {
-      return (1 / (stdDev * sqrt(2 * pi))) *
-          exp(-0.5 * pow((x - mean) / stdDev, 2));
-    }).toList();
-
-    // Aturan Sturges
-    int k = (1 + 3.322 * log(n) / log(10)).round(); // Jumlah kelas
-    double range = maxValue - minValue; // Rentang
-    double classWidth = (range / k).ceilToDouble(); // Lebar kelas
-
-    double lowerBound = minValue;
-    List<Map<String, dynamic>> classes = [];
-    List<int> cumulativeFrequencies = [];
-    int cumulativeFrequency = 0;
-
-    // Hitung kelas interval dan frekuensi
-    for (int i = 0; i < k; i++) {
-      double upperBound =
-          i == k - 1 ? lowerBound + classWidth : lowerBound + classWidth;
-
-      int frequency = data
-          .where((value) => value >= lowerBound && value < upperBound)
-          .length;
-
-      cumulativeFrequency += frequency;
-      cumulativeFrequencies.add(cumulativeFrequency);
-
-      classes.add({
-        'interval':
-            '${lowerBound.toStringAsFixed(1)} - ${upperBound.toStringAsFixed(1)}',
-        'frequency': frequency,
+    } else if (data.length < 2) {
+      setState(() {
+        _result = 'Angka yang anda masukan kurang';
       });
+      Flushbar(
+        message: _result,
+        backgroundColor: Colors.white,
+        messageColor: Colors.black,
+        borderRadius: BorderRadius.circular(12),
+        margin: EdgeInsets.all(16),
+        duration: Duration(seconds: 3),
+        positionOffset: 20, // Offset dari atas
+        flushbarPosition: FlushbarPosition.TOP,
+      ).show(context);
+    } else {
+      int n = data.length;
 
-      lowerBound = upperBound;
-    }
+      // Hitung mean dan standar deviasi
+      double mean = data.reduce((a, b) => a + b) / n;
+      double variance =
+          data.map((value) => pow(value - mean, 2)).reduce((a, b) => a + b) /
+              (n - 1);
+      double stdDev = sqrt(variance);
 
-    // Navigasi ke MyChartPage dengan data yang telah dihitung
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MyChartPage(
-          classes: classes,
-          cumulativeFrequencies: cumulativeFrequencies,
-          frequencies: classes
-              .map((c) => c['frequency'] as int)
-              .toList(), // Create the frequencies list
-          mean: mean,
-          variance: variance,
-          normalDistributionX: xValues, // Sumbu X distribusi normal
-          normalDistributionY: yValues, // Sumbu Y distribusi normal
+      // Hitung distribusi normal (PDF) untuk setiap nilai dalam rentang data
+      double minValue = data.reduce((a, b) => a < b ? a : b);
+      double maxValue = data.reduce((a, b) => a > b ? a : b);
+      double step = (maxValue - minValue) / 100;
+
+      List<double> xValues = List.generate(
+        101,
+        (index) => minValue + index * step,
+      );
+
+      List<double> yValues = xValues.map((x) {
+        return (1 / (stdDev * sqrt(2 * pi))) *
+            exp(-0.5 * pow((x - mean) / stdDev, 2));
+      }).toList();
+
+      // Aturan Sturges
+      int k = (1 + 3.322 * log(n) / log(10)).round(); // Jumlah kelas
+      double range = maxValue - minValue; // Rentang
+      double classWidth = (range / k).ceilToDouble(); // Lebar kelas
+
+      double lowerBound = minValue;
+      List<Map<String, dynamic>> classes = [];
+      List<int> cumulativeFrequencies = [];
+      int cumulativeFrequency = 0;
+
+      // Hitung kelas interval dan frekuensi
+      for (int i = 0; i < k; i++) {
+        double upperBound =
+            i == k - 1 ? lowerBound + classWidth : lowerBound + classWidth;
+
+        int frequency = data
+            .where((value) => value >= lowerBound && value < upperBound)
+            .length;
+
+        cumulativeFrequency += frequency;
+        cumulativeFrequencies.add(cumulativeFrequency);
+
+        classes.add({
+          'interval':
+              '${lowerBound.toStringAsFixed(1)} - ${upperBound.toStringAsFixed(1)}',
+          'frequency': frequency,
+        });
+
+        lowerBound = upperBound;
+      }
+
+      List<double> zScores =
+          data.map((value) => (value - mean) / stdDev).toList();
+
+      // Navigasi ke MyChartPage dengan data yang telah dihitung
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MyChartPage(
+              classes: classes,
+              cumulativeFrequencies: cumulativeFrequencies,
+              frequencies: classes
+                  .map((c) => c['frequency'] as int)
+                  .toList(), // Create the frequencies list
+              mean: mean,
+              variance: variance,
+              normalDistributionX: xValues, // Sumbu X distribusi normal
+              normalDistributionY: yValues, // Sumbu Y distribusi normal
+              zScores: zScores),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override

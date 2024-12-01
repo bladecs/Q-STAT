@@ -8,15 +8,17 @@ class MyChartPage extends StatefulWidget {
   final double variance;
   final List<double> normalDistributionX;
   final List<double> normalDistributionY;
+  final List<double> zScores;
 
   MyChartPage({
     required this.classes,
     required this.cumulativeFrequencies,
-    required this.frequencies, // Menambahkan frekuensi
+    required this.frequencies,
     required this.mean,
     required this.variance,
     required this.normalDistributionX,
     required this.normalDistributionY,
+    required this.zScores,
   });
 
   @override
@@ -24,7 +26,7 @@ class MyChartPage extends StatefulWidget {
 }
 
 class _MyChartPageState extends State<MyChartPage> {
-  int _currentIndex = 0; // Indeks halaman saat ini
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -32,116 +34,173 @@ class _MyChartPageState extends State<MyChartPage> {
       appBar: AppBar(
         title: Text('Result'),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          // Menggunakan IndexedStack untuk mengganti tampilan berdasarkan indeks
-          IndexedStack(
-            index: _currentIndex,
-            children: [
-              // Halaman pertama (Histogram)
-              Container(
-                width: double.infinity,
-                height: 350, // Tetap diatur tingginya
-                color: Color(0xFF0F031C),
-                alignment: Alignment.topCenter, // Letakkan di atas
-                child: Card(
-                  elevation: 5,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    padding: const EdgeInsets.all(20),
-                    child: HistogramChartWidget(
-                      classes: widget.classes,
-                      frequencies: widget.frequencies,
-                    ),
-                  ),
-                ),
-              ),
-              // Halaman kedua (Distribusi Normal)
-              Container(
-                width: double.infinity,
-                height: 350, // Tetap diatur tingginya
-                color: Color(0xFF0F031C),
-                alignment: Alignment.topCenter, // Letakkan di atas
-                child: Card(
-                  elevation: 5,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    padding: const EdgeInsets.all(20),
-                    child: LineChartWidget(
-                      xValues: widget.normalDistributionX,
-                      yValues: widget.normalDistributionY,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          // Bagian IndexedStack untuk chart, tetap tidak bisa digulir
           Container(
-            child: Expanded(
-              child:Padding(padding:EdgeInsets.all(20)),
-              ),
-          ),
-          // Tombol navigasi kiri
-          Positioned(
-            left: 16,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: RawMaterialButton(
-                onPressed: () {
-                  setState(() {
-                    _currentIndex = (_currentIndex - 1)
-                        .clamp(0, 1); // Navigasi ke halaman sebelumnya
-                  });
-                },
-                elevation: 5,
-                fillColor: Colors.white, // Warna latar tombol
-                shape: CircleBorder(), // Membuat tombol berbentuk lingkaran
-                constraints: BoxConstraints.tightFor(
-                  width: 40, // Lebar tombol
-                  height: 40, // Tinggi tombol
+            height: 350, // Ukuran tetap untuk grafik
+            child: Stack(
+              children: [
+                IndexedStack(
+                  index: _currentIndex,
+                  children: [
+                    // Histogram
+                    _buildChartCard(
+                      child: HistogramChartWidget(
+                        classes: widget.classes,
+                        frequencies: widget.frequencies,
+                      ),
+                    ),
+                    // Distribusi Normal
+                    _buildChartCard(
+                      child: LineChartWidget(
+                        xValues: widget.normalDistributionX,
+                        yValues: widget.normalDistributionY,
+                      ),
+                    ),
+                  ],
                 ),
-                child: Icon(
-                  Icons.arrow_back, // Ikon panah kiri
-                  color: Colors.black, // Warna ikon
+                // Tombol navigasi kiri
+                _buildNavigationButton(
+                  onPressed: () {
+                    setState(() {
+                      _currentIndex = (_currentIndex - 1).clamp(0, 1);
+                    });
+                  },
+                  left: 16,
+                  top: 145,
+                  icon: Icons.arrow_back,
                 ),
-              ),
+                // Tombol navigasi kanan
+                _buildNavigationButton(
+                  onPressed: () {
+                    setState(() {
+                      _currentIndex = (_currentIndex + 1).clamp(0, 1);
+                    });
+                  },
+                  right: 16,
+                  top: 145,
+                  icon: Icons.arrow_forward,
+                ),
+              ],
             ),
           ),
-          // Tombol navigasi kanan
-          Positioned(
-            right: 16,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: RawMaterialButton(
-                onPressed: () {
-                  setState(() {
-                    _currentIndex = (_currentIndex + 1)
-                        .clamp(0, 1); // Navigasi ke halaman berikutnya
-                  });
-                },
-                elevation: 5,
-                fillColor: Colors.white, // Warna latar tombol
-                shape: CircleBorder(), // Membuat tombol berbentuk lingkaran
-                constraints: BoxConstraints.tightFor(
-                  width: 40, // Lebar tombol
-                  height: 40, // Tinggi tombol
-                ),
-                child: Icon(
-                  Icons.arrow_forward, // Ikon panah kanan
-                  color: Colors.black, // Warna ikon
-                ),
+
+          // Bagian yang bisa di-scroll: Tabel dan Statistik
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildDataTable(),
+                  _buildStatisticsCard(),
+                ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Helper function to build chart cards
+  Widget _buildChartCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      color: Color(0xFF0F031C),
+      alignment: Alignment.center,
+      child: Card(
+        elevation: 5,
+        margin: const EdgeInsets.all(16),
+        child: Container(
+          width: 300,
+          height: 300,
+          padding: const EdgeInsets.all(20),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  // Helper function to build navigation buttons
+  Widget _buildNavigationButton({
+    required VoidCallback onPressed,
+    double? left,
+    double? right,
+    double top = 145,
+    required IconData icon,
+  }) {
+    return Positioned(
+      left: left,
+      right: right,
+      top: top,
+      child: RawMaterialButton(
+        onPressed: onPressed,
+        elevation: 5,
+        fillColor: Colors.white,
+        shape: CircleBorder(),
+        constraints: BoxConstraints.tightFor(width: 40, height: 40),
+        child: Icon(icon, color: Colors.black),
+      ),
+    );
+  }
+
+  // Helper function to build the DataTable for Z-Scores
+  Widget _buildDataTable() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      child: Card(
+        elevation: 5,
+        margin: const EdgeInsets.all(16),
+        child: DataTable(
+          columnSpacing: 16.0,
+          dataRowMinHeight: 48.0,
+          dataRowMaxHeight: 64.0,
+          headingRowHeight: 56.0,
+          columns: const [
+            DataColumn(label: Text('Interval')),
+            DataColumn(label: Text('F')),
+            DataColumn(label: Text('F(k)')),
+            DataColumn(label: Text('Z-Score')),
+          ],
+          rows: widget.classes.asMap().entries.map((entry) {
+            int index = entry.key;
+            Map<String, dynamic> intervalData = entry.value;
+            return DataRow(
+              cells: [
+                DataCell(Text(intervalData['interval'])),
+                DataCell(Text(intervalData['frequency'].toString())),
+                DataCell(Text(widget.cumulativeFrequencies[index].toString())),
+                DataCell(Text(widget.zScores[index].toStringAsFixed(2))),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // Helper function to build the Statistics Card (Mean and Variance)
+  Widget _buildStatisticsCard() {
+    return Container(
+      width: double.infinity,
+      height: 150,
+      padding: const EdgeInsets.all(8),
+      child: Card(
+        elevation: 5,
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+        child: Column(
+          children: [
+            ListTile(
+              title: Text('Mean'),
+              trailing: Text(widget.mean.toStringAsFixed(2)),
+            ),
+            ListTile(
+              title: Text('Variance'),
+              trailing: Text(widget.variance.toStringAsFixed(2)),
+            ),
+          ],
+        ),
       ),
     );
   }
