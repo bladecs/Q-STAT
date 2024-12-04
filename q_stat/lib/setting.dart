@@ -91,7 +91,7 @@ class _SettingPageDashboardState extends State<SettingPageDashboard> {
                                 Icon(Icons.phone, color: Colors.black),
                                 SizedBox(width: 10),
                                 Text(
-                                  "Nomor HP: 0812-3456-7890",
+                                  "Nomor HP: 0857-2069-9706",
                                   style: TextStyle(fontSize: 16),
                                 ),
                               ],
@@ -102,7 +102,7 @@ class _SettingPageDashboardState extends State<SettingPageDashboard> {
                                 Icon(Icons.email, color: Colors.black),
                                 SizedBox(width: 10),
                                 Text(
-                                  "Email: example@mail.com",
+                                  "Email: bladecs86@gmail.com",
                                   style: TextStyle(fontSize: 16),
                                 ),
                               ],
