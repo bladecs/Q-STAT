@@ -61,6 +61,8 @@ flutter:
   assets:
     - assets/load_screen.png
     - assets/logo.png
+    - assets/info.png
+    - assets/setting.png
   fonts:
     - family: Trip Sans
       fonts:

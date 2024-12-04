@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:q_stat/chart.dart';
 import 'dashboard.dart';
-import 'chart.dart';
 
 void main() {
   runApp(const MyApp());

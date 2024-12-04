@@ -9,8 +9,10 @@ class MyChartPage extends StatefulWidget {
   final List<double> normalDistributionX;
   final List<double> normalDistributionY;
   final List<double> zScores;
+  final String inputComparisons;
 
-  MyChartPage({
+  const MyChartPage({
+    super.key,
     required this.classes,
     required this.cumulativeFrequencies,
     required this.frequencies,
@@ -19,6 +21,7 @@ class MyChartPage extends StatefulWidget {
     required this.normalDistributionX,
     required this.normalDistributionY,
     required this.zScores,
+    required this.inputComparisons,
   });
 
   @override
@@ -32,12 +35,12 @@ class _MyChartPageState extends State<MyChartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Result'),
+        title: const Text('Result'),
       ),
       body: Column(
         children: [
           // Bagian IndexedStack untuk chart, tetap tidak bisa digulir
-          Container(
+          SizedBox(
             height: 350, // Ukuran tetap untuk grafik
             child: Stack(
               children: [
@@ -106,7 +109,7 @@ class _MyChartPageState extends State<MyChartPage> {
   Widget _buildChartCard({required Widget child}) {
     return Container(
       width: double.infinity,
-      color: Color(0xFF0F031C),
+      color: const Color(0xFF0F031C),
       alignment: Alignment.center,
       child: Card(
         elevation: 5,
@@ -137,8 +140,8 @@ class _MyChartPageState extends State<MyChartPage> {
         onPressed: onPressed,
         elevation: 5,
         fillColor: Colors.white,
-        shape: CircleBorder(),
-        constraints: BoxConstraints.tightFor(width: 40, height: 40),
+        shape: const CircleBorder(),
+        constraints: const BoxConstraints.tightFor(width: 40, height: 40),
         child: Icon(icon, color: Colors.black),
       ),
     );
@@ -184,20 +187,54 @@ class _MyChartPageState extends State<MyChartPage> {
   Widget _buildStatisticsCard() {
     return Container(
       width: double.infinity,
-      height: 150,
       padding: const EdgeInsets.all(8),
       child: Card(
         elevation: 5,
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
         child: Column(
+          mainAxisSize:
+              MainAxisSize.min, // Menghindari overflow dan menyesuaikan tinggi
           children: [
             ListTile(
-              title: Text('Mean'),
-              trailing: Text(widget.mean.toStringAsFixed(2)),
+              title: const Text('Mean'),
+              trailing: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 200, // Tentukan lebar maksimum untuk trailing
+                ),
+                child: Text(
+                  widget.mean.toStringAsFixed(2),
+                  overflow: TextOverflow.clip, // Mencegah overflow teks
+                  softWrap:
+                      true, // Membuat teks bisa turun ke bawah jika terlalu panjang
+                ),
+              ),
             ),
             ListTile(
-              title: Text('Variance'),
-              trailing: Text(widget.variance.toStringAsFixed(2)),
+              title: const Text('Variance'),
+              trailing: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 200, // Tentukan lebar maksimum untuk trailing
+                ),
+                child: Text(
+                  widget.variance.toStringAsFixed(2),
+                  overflow: TextOverflow.clip,
+                  softWrap: true,
+                ),
+              ),
+            ),
+            ListTile(
+              title: const Text('Comparison'),
+              trailing: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 150, // Tentukan lebar maksimum untuk trailing
+                ),
+                child: Text(
+                  widget.inputComparisons,
+                  overflow: TextOverflow.clip,
+                  softWrap: true,
+                  textAlign: TextAlign.right,
+                ),
+              ),
             ),
           ],
         ),
@@ -212,7 +249,8 @@ class LineChartWidget extends StatelessWidget {
   final double chartWidth;
   final double chartHeight;
 
-  LineChartWidget({
+  const LineChartWidget({
+    super.key,
     required this.xValues,
     required this.yValues,
     this.chartWidth = double.infinity, // Default lebar layar penuh
@@ -299,7 +337,7 @@ class LineChartPainter extends CustomPainter {
 
       // Label Y
       TextSpan span = TextSpan(
-        style: TextStyle(color: Colors.black, fontSize: 10),
+        style: const TextStyle(color: Colors.black, fontSize: 10),
         text: yValue.toStringAsFixed(3), // Ubah presisi menjadi 3 desimal
       );
       TextPainter tp = TextPainter(
@@ -325,7 +363,7 @@ class LineChartPainter extends CustomPainter {
 
       // Label X
       TextSpan span = TextSpan(
-        style: TextStyle(color: Colors.black, fontSize: 12),
+        style: const TextStyle(color: Colors.black, fontSize: 12),
         text: xValue.toStringAsFixed(1),
       );
       TextPainter tp = TextPainter(
@@ -377,7 +415,8 @@ class HistogramChartWidget extends StatelessWidget {
   final List<Map<String, dynamic>> classes;
   final List<int> frequencies;
 
-  HistogramChartWidget({
+  const HistogramChartWidget({
+    super.key,
     required this.classes,
     required this.frequencies,
   });
@@ -454,7 +493,7 @@ class HistogramPainter extends CustomPainter {
 
       // Label pada sumbu Y
       TextSpan span = TextSpan(
-        style: TextStyle(color: Colors.black, fontSize: 10),
+        style: const TextStyle(color: Colors.black, fontSize: 10),
         text: frequencyValue.toStringAsFixed(1), // Format desimal
       );
       TextPainter tp = TextPainter(
@@ -489,7 +528,7 @@ class HistogramPainter extends CustomPainter {
     // Menambahkan label pada sumbu X
     for (int i = 0; i < classes.length; i++) {
       TextSpan span = TextSpan(
-        style: TextStyle(color: Colors.black, fontSize: 10),
+        style: const TextStyle(color: Colors.black, fontSize: 10),
         text: classes[i]['interval'],
       );
       TextPainter tp = TextPainter(
